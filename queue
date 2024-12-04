@@ -1,1 +1,84 @@
-
+#include<stdio.h>
+#include<stdlib.h>
+#define MAX 5
+void printContent(int *queue,int front,int rear){
+    for(int i=front;i<rear;i++)
+        printf("%d ",queue[i]);
+    printf("\n");
+}
+int insert(int *rear,int *queue){
+    if(*rear==MAX)  return 0;
+    else{
+        int ele;
+        printf("Enter the element : ");
+        scanf("%d",&ele);
+        queue[(*rear)++]=ele;
+        return 1;
+    }
+}
+int delete(int *front,int rear,int *queue){
+    if(*front==rear)    return 0; 
+    else{
+        (*front)++;
+        return 1;
+    }
+}
+int peek(int front,int rear,int *queue){
+    if(front==rear){
+        printf("Underflow: can't peek\n");
+        return -1;
+    }
+    else    return(queue[front]);
+}
+int isFull(int rear){
+    if(rear==MAX)    return 1;
+    else    return 0;
+}
+int isEmpty(int front,int rear){
+    if(front==rear) return 1;
+    else    return 0;
+}
+int main(){
+    int *queue,ch,topelement,front=0,rear=0;
+    queue=(int*)malloc(MAX*sizeof(int));
+    do{
+        printf("1->Insert\n2->Delete\n3->Peek\n4->Check Full\n5->Check Empty\n6->Exit\n");
+        printf("Enter your choice \n");
+        scanf("%d",&ch);
+        switch(ch){
+            case 1:
+            if(insert(&rear,queue)){
+                printf("Element successfully inserted \n");
+                printf("Queue content after inserting \n");
+                printContent(queue,front,rear);
+            }
+            else    printf("Overflow can't insert \n");
+            break;
+            case 2:
+            if(delete(&front,rear,queue)){
+                printf("Element successfully deleted \n");
+                printf("Queue element after deletion from top \n");
+                printContent(queue,front,rear);
+            }   
+            else    printf("Underflow can't delete \n");
+            break;
+            case 3:
+            topelement=peek(front,rear,queue);
+            if(topelement!=-1)  printf("Top element is = %d \n",topelement);
+            break;
+            case 4:
+            if(isFull(rear))   printf("Queue is Full \n");
+            else    printf("Queue is not full \n");
+            break;
+            case 5:
+            if(isEmpty(front,rear))    printf("Queue is empty\n");
+            else    printf("Queue is not empty\n");
+            break;
+            case 6: break;
+            default:
+            printf("Invalid choice \n");
+        }
+    }while(ch!=6);
+    free(queue);
+    return 0;
+}
