@@ -307,7 +307,7 @@ int main(){
     return 0;
 }
 
-//Infix To Postfix double operand
+//Infix To Postfix operand more than one digit
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -441,7 +441,7 @@ int main(){
     return 0;
 }
 
-//Evaluation of Postfix double
+//Evaluation of Postfix more than one digit operand
 
 #include <stdio.h>
 #include <stdlib.h>
