@@ -1,1 +1,110 @@
+//Identity and Diagonal
 
+#include<stdio.h>
+#include<stdlib.h>
+#include<stdbool.h>
+bool isIdentity(int **mat,int size){
+    for(int i=0;i<size;i++)
+        for(int j=0;j<size;j++)
+            if((i==j&&mat[i][j]!=1)||(i!=j&&mat[i][j]!=0))
+                return false;
+    return true;
+}
+bool isDiagonal(int **mat,int size){
+    for(int i=0;i<size;i++)
+        for(int j=0;j<size;j++)
+            if(i!=j&&mat[i][j]!=0)
+                return false;
+    return true;
+}
+int main(){
+    int size,ch,y;
+    bool flag,k;
+    int **mat;
+    printf("Enter the size of matrix : ");
+    scanf("%d",&size);
+    mat=(int**)malloc(size*sizeof(int*));
+    for(int i=0;i<size;i++)
+    mat[i]=(int*)malloc(size*sizeof(int));
+    printf("Enter the elements of matrix \n");
+    for(int i=0;i<size;i++)
+        for(int j=0;j<size;j++)
+            scanf("%d",&mat[i][j]);
+    do{
+        printf("Enter 1 to check matrix is identity or not \n");
+        printf("Enter 2 to check matrix is diagonal or not \n");
+        printf("Enter your choice : ");
+        scanf("%d",&ch);
+        switch(ch){
+            case 1:
+            flag=isIdentity(mat,size);
+            if(flag)
+                printf("Matrix is Identity \n");
+            else
+                printf("Matrix is not Identity \n");
+            break;
+            case 2:
+            k=isDiagonal(mat,size);
+            if(k)
+                printf("Matrix is Diagonal \n");
+            else
+                printf("Matrix is not Diagonal \n");
+            break;
+            default :
+            printf("Invalid Choice");
+        }
+        printf("If you want to continue then press 1 else any other number to exit : ");
+        scanf("%d",&y);
+    }while(y==1);
+    return 0;
+}
+
+
+//MATRIX MULTIPLICATION
+
+#include<stdio.h>
+#include<stdlib.h>
+void multiplication(int **mat1,int **mat2,int r1,int c1,int r2,int c2){
+    if(c1!=r2){
+        printf("Matrix multiplication not possible\n");
+        return;
+    }
+    int **result=(int**)malloc(r1*sizeof(int*));
+    for(int i=0;i<r1;i++)
+    result[i]=(int*)malloc(c2*sizeof(int));
+    for(int i=0;i<r1;i++)
+        for(int j=0;j<c2;j++){
+            result[i][j]=0;
+            for(int k=0;k<c1;k++)
+                result[i][j]+=mat1[i][k]*mat2[j][k];
+        }
+    printf("Matrix after multiplying is \n");
+    for(int i=0;i<r1;i++){
+        for(int j=0;j<c2;j++)
+            printf("%d\t",result[i][j]);
+        printf("\n");
+    }
+}
+int main() {
+    int r1,c1,r2,c2;
+    printf("Enter row and column of first matrix : ");
+    scanf("%d %d",&r1,&c1);
+    printf("Enter row and column of second matrix : ");
+    scanf("%d %d",&r2,&c2);
+    int **mat1=(int**)malloc(r1*sizeof(int*));
+    for(int i=0;i<r1;i++)
+    mat1[i]=(int*)malloc(c1*sizeof(int));
+    int **mat2=(int**)malloc(r2*sizeof(int*));
+    for(int i=0;i<r2;i++)
+    mat2[i]=(int*)malloc(c2*sizeof(int));
+    printf("Enter elements of first matrix \n");
+    for(int i=0;i<r1;i++)
+        for(int j=0;j<c1;j++)
+            scanf("%d",&mat1[i][j]);
+    printf("Enter elements of second matrix \n");
+    for(int i=0;i<r2;i++)
+        for(int j=0;j<c2;j++)
+            scanf("%d",&mat2[i][j]);
+    multiplication(mat1,mat2,r1,c1,r2,c2);
+    return 0;
+}
