@@ -89,3 +89,422 @@ int main(){
     free(stack);
     return 0;
 }
+
+//Stack using Linked List
+
+#include <stdio.h>
+#include <stdlib.h>
+typedef struct Node {
+    int data;
+    struct Node* next;
+} Node;
+Node* createNode(int data) {
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    newNode->data = data;
+    newNode->next = NULL;
+    return newNode;
+}
+void push(Node** top, int data) {
+    Node* newNode = createNode(data);
+    newNode->next = *top;  
+    *top = newNode;        
+    printf("%d pushed to stack\n", data);
+}
+int pop(Node** top) {
+    if (*top == NULL) {
+        printf("Stack Underflow\n");
+        return -1;
+    }
+    Node* temp = *top;      
+    int poppedValue = temp->data;
+    *top = (*top)->next;    
+    free(temp);            
+    return poppedValue;
+}
+int peek(Node* top) {
+    if (top == NULL) {
+        printf("Stack is empty\n");
+        return -1;
+    }
+    return top->data;
+}
+int isEmpty(Node* top) {
+    return top == NULL;
+}
+void displayStack(Node* top) {
+    if (top == NULL) {
+        printf("Stack is empty\n");
+        return;
+    }
+    printf("Stack elements: ");
+    Node* current = top;
+    while (current) {
+        printf("%d ", current->data);
+        current = current->next;
+    }
+    printf("\n");
+}
+int main() {
+    Node* stack = NULL; 
+    int choice, value;
+    while (1) {
+        printf("\nStack Operations:\n");
+        printf("1. Push\n");
+        printf("2. Pop\n");
+        printf("3. Peek\n");
+        printf("4. Display Stack\n");
+        printf("5. Check if Stack is Empty\n");
+        printf("6. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        switch (choice) {
+            case 1:
+                printf("Enter data to push: ");
+                scanf("%d", &value);
+                push(&stack, value);
+                break;
+            case 2:
+                value = pop(&stack);
+                if (value != -1)
+                    printf("Popped element: %d\n", value);
+                break;
+            case 3:
+                value = peek(stack);
+                if (value != -1)
+                    printf("Top element: %d\n", value);
+                break;
+            case 4:
+                displayStack(stack);
+                break;
+            case 5:
+                if (isEmpty(stack))
+                    printf("Stack is empty\n");
+                else
+                    printf("Stack is not empty\n");
+                break;
+            case 6:
+                exit(0);
+            default:
+                printf("Invalid choice\n");
+        }
+    }
+    return 0;
+}
+
+//Paranthesis Check using Stack
+
+#include<stdio.h>
+#include<stdlib.h>
+#define MAX 100
+void push(char *stack,int *top,char c){
+    if(*top==MAX-1)    return;
+    else    stack[++(*top)]=c;
+}
+char pop(char *stack,int *top){
+    if(*top==-1) return '\0';
+    return stack[(*top)--];
+}
+int main(){
+    int top=-1,balance=1;
+    char *s,topelement,*stack;
+    s=(char*)malloc((MAX+1)*sizeof(char));
+    printf("Enter the expression for parenthesis check\n");
+    fgets(s,MAX+1,stdin);
+    stack=(char*)malloc(MAX*sizeof(char));
+    for(int i=0;s[i]!='\0';i++){
+        if(s[i]=='('||s[i]=='{'||s[i]=='[')
+            push(stack,&top,s[i]);    
+        else if(s[i]==')'||s[i]=='}'||s[i]==']'){
+            topelement=pop(stack,&top);
+            if((s[i]==')' && topelement!='(')||(s[i]=='}' && topelement!='{')||(s[i]==']' && topelement!='[')){
+                balance=0;
+                break;
+            }
+        }
+    }
+    if((top==-1)&&(balance)) printf("Parenthesis check successful\n");
+    else    printf("Parenthesis check unsuccessful\n");
+    free(s);
+    free(stack);
+    return 0;
+}
+
+//Infix To Postfix single operand
+
+#include<stdio.h>
+#include<stdlib.h>
+#define MAX 100
+void push(char *stack,int *top,char c){
+    if(*top==MAX-1)    return;
+    else    stack[++(*top)]=c;
+}
+void pop(int *top,char *stack,char *topele){
+    if(*top==-1) return;
+    *topele=stack[(*top)--];
+}
+void peek(int top,char *stack,char *topele){
+    if(top==-1) return ;
+    *topele=stack[top];
+}
+int priority(char x){
+    switch(x){
+        case '(':   return 1;
+        case '+':
+        case '-':   return 2;
+        case '*':   
+        case '/':   return 3;
+        case ')':   return 4;
+        default:    return 0;
+    }
+}
+int main(){
+    char *infix,*stack,*postfix,topele;
+    int top=-1,j=0;
+    infix=(char*)malloc((MAX+1)*sizeof(char));
+    postfix=(char*)malloc(MAX*sizeof(char));
+    stack=(char*)malloc(MAX*sizeof(char));
+    printf("Enter infix expression \n");
+    fgets(infix,MAX+1,stdin);
+    for(int i=0;infix[i]!='\0';i++)
+        if(infix[i]=='\n'){
+            infix[i]='\0';
+            break;
+        }
+    for(int i=0;infix[i]!='\0';i++){
+        switch(infix[i]){
+            case '(':
+                push(stack,&top,infix[i]);
+                break;
+            case '+':
+            case '-':
+            case '*':
+            case '/':
+                peek(top,stack,&topele);
+                while(top!=-1 && priority(topele)>=priority(infix[i])){
+                    pop(&top,stack,&topele);
+                    postfix[j++]=topele;
+                    peek(top,stack,&topele);
+                }
+                push(stack,&top,infix[i]);
+                break;
+            case ')':
+                pop(&top,stack,&topele);
+                while(topele!='('){
+                    postfix[j++]=topele;
+                    pop(&top,stack,&topele);
+                }
+            break;
+            default:    postfix[j++]=infix[i];
+        }
+    }
+    while (top!=-1) {
+        pop(&top,stack,&topele);
+        postfix[j++]=topele;
+    }
+    postfix[j]='\0';
+    printf("Postfix Expression is \n%s",postfix);
+    free(infix);free(postfix);free(stack);
+    return 0;
+}
+
+//Infix To Postfix double operand
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <string.h>
+#define MAX 100
+void push(char *stack, int *top, char c) {
+    if (*top == MAX - 1)  return;
+    stack[++(*top)] = c;
+}
+void pop(int *top, char *stack, char *topele) {
+    if (*top == -1) return;
+    *topele = stack[(*top)--];
+}
+void peek(int top, char *stack, char *topele) {
+    if (top == -1) return;
+    *topele = stack[top];
+}
+int priority(char x) {
+    switch (x) {
+        case '(': return 1;
+        case '+':
+        case '-': return 2;
+        case '*':
+        case '/': return 3;
+        case ')': return 4;
+        default: return 0;
+    }
+}
+void infixToPostfix(char *infix, char *postfix) {
+    char *stack = (char *)malloc(MAX * sizeof(char));
+    int top = -1, j = 0;
+    for (int i = 0; infix[i] != '\0'; i++) {
+        if (isdigit(infix[i]) || infix[i] == '.') {
+            while (isdigit(infix[i]) || infix[i] == '.')  postfix[j++] = infix[i++];
+            postfix[j++] = ' '; 
+            i--;
+        } 
+        else if (infix[i] == '(')  push(stack, &top, infix[i]);
+        else if (infix[i] == ')') {
+            char topele;
+            while (top != -1 && stack[top] != '(') {
+                pop(&top, stack, &topele);
+                postfix[j++] = topele;
+            }
+            pop(&top, stack, &topele);
+        } 
+        else if (infix[i] == '+' || infix[i] == '-' || infix[i] == '*' || infix[i] == '/') {
+            char topele;
+            peek(top, stack, &topele);
+            while (top != -1 && priority(topele) >= priority(infix[i])) {
+                pop(&top, stack, &postfix[j++]);
+                postfix[j++] = ' ';
+                peek(top, stack, &topele);
+            }
+            push(stack, &top, infix[i]);
+        }
+    }
+    while (top != -1) {
+        char topele;
+        pop(&top, stack, &topele);
+        postfix[j++] = topele;
+        postfix[j++] = ' ';
+    }
+    postfix[j] = '\0'; 
+    free(stack);
+}
+int main() {
+    char *infix = (char *)malloc((MAX + 1) * sizeof(char));
+    char *postfix = (char *)malloc(MAX * sizeof(char));
+    printf("Enter infix expression: ");
+    fgets(infix, MAX + 1, stdin);
+    infix[strcspn(infix, "\n")] = '\0';
+    infixToPostfix(infix, postfix);
+    printf("Postfix Expression is:\n%s\n", postfix);
+    free(infix); free(postfix);
+    return 0;
+}
+
+//Evaluation of Postfix
+
+#include<stdio.h>
+#include<stdlib.h>
+#define MAX 100
+void push(float *stack,int *top,float c){
+    if(*top==MAX-1){  
+        printf("Stack Overflow \n");
+        return;
+    }
+    else    stack[++(*top)]=c;
+}
+void pop(int *top){
+    if(*top==-1){
+        printf("Stack Underflow \n");
+        return;
+    }
+    (*top)--;
+}
+int main(){
+    char *postfix;
+    int top=-1,i=0;
+    float *stack;
+    postfix=(char*)malloc((MAX+1)*sizeof(char));
+    stack=(float*)malloc(MAX*sizeof(float));
+    printf("Enter postfix expression \n");
+    fgets(postfix,MAX+1,stdin);
+    for (int j=0;postfix[j]!='\0';j++)
+        if(postfix[j]=='\n'){
+            postfix[j]='\0';
+            break;
+        }
+    while(postfix[i]!='\0'){
+        if(postfix[i]>=48 && postfix[i]<=57)    push(stack,&top,postfix[i]-'0');
+        else{
+            float a=stack[top];
+            pop(&top);
+            float b=stack[top];
+            pop(&top);
+            switch(postfix[i]){
+                case '+': push(stack,&top,b+a); break;
+                case '-': push(stack,&top,b-a); break;
+                case '*': push(stack,&top,b*a); break;
+                case '/': push(stack,&top,b/a); break;
+            }
+        }
+        i++;
+    }
+    float result=stack[top];
+    printf("Expression result is = %.2f",result);
+    free(stack);free(postfix);
+    return 0;
+}
+
+//Evaluation of Postfix double
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <string.h>
+#define MAX 100
+void push(float *stack, int *top, float value) {
+    if (*top == MAX - 1) {
+        printf("Stack Overflow\n");
+        return;
+    }
+    stack[++(*top)] = value;
+}
+float pop(float *stack, int *top) {
+    if (*top == -1) {
+        printf("Stack Underflow\n");
+        return 0;
+    }
+    return stack[(*top)--];
+}
+float evaluatePostfix(char *postfix) {
+    float stack[MAX];
+    int top = -1,j;
+    float value, op1, op2;
+    char buffer[MAX];
+    for (int i = 0; postfix[i] != '\0'; i++) {
+        if (isdigit(postfix[i]) || postfix[i] == '.') {
+            j = 0;
+            while (isdigit(postfix[i]) || postfix[i] == '.')    
+                buffer[j++] = postfix[i++];
+            buffer[j] = '\0';
+            value = atof(buffer);
+            push(stack, &top, value);
+            i--;
+        } else if (postfix[i] == ' ')   continue; 
+        else {
+            op2 = pop(stack, &top);
+            op1 = pop(stack, &top);
+            switch (postfix[i]) {
+                case '+': push(stack, &top, op1 + op2); break;
+                case '-': push(stack, &top, op1 - op2); break;
+                case '*': push(stack, &top, op1 * op2); break;
+                case '/': 
+                    if (op2 != 0) 
+                        push(stack, &top, op1 / op2); 
+                    else 
+                        printf("Error: Division by zero\n"); 
+                    break;
+                default: 
+                    printf("Unknown operator: %c\n", postfix[i]); 
+                    break;
+            }
+        }
+    }
+    return pop(stack, &top);
+}
+int main() {
+    char *postfix = (char *)malloc((MAX + 1) * sizeof(char));
+    printf("Enter postfix expression: ");
+    fgets(postfix, MAX + 1, stdin);
+    postfix[strcspn(postfix, "\n")] = '\0';
+    float result = evaluatePostfix(postfix);
+    printf("Expression result is = %.2f\n", result);
+    free(postfix);
+    return 0;
+}
