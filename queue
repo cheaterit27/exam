@@ -84,3 +84,676 @@ int main(){
     free(queue);
     return 0;
 }
+
+//Queue using Linked List
+
+#include <stdio.h>
+#include <stdlib.h>
+typedef struct Node {
+    int data;
+    struct Node* next;
+} Node;
+typedef struct Queue {
+    Node* front;
+    Node* rear;
+} Queue;
+Node* createNode(int data) {
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    newNode->data = data;
+    newNode->next = NULL;
+    return newNode;
+}
+void enqueue(Queue* queue, int data) {
+    if (queue->front == NULL && queue->rear == NULL) { 
+        queue->front = queue->rear = createNode(data); 
+        printf("%d enqueued to queue\n", data);
+        return;
+    }
+    Node* newNode = createNode(data);
+    queue->rear->next = newNode;  
+    queue->rear = newNode;        
+    printf("%d enqueued to queue\n", data);
+}
+int dequeue(Queue* queue) {
+    if (queue->front == NULL) {  
+        printf("Queue Underflow\n");
+        return -1;
+    }
+    Node* temp = queue->front;     
+    int dequeuedValue = temp->data;
+    queue->front = queue->front->next; 
+    if (queue->front == NULL)          
+        queue->rear = NULL;            
+    free(temp);                        
+    return dequeuedValue;
+}
+int peekFront(Queue* queue) {
+    if (queue->front == NULL) {
+        printf("Queue is empty\n");
+        return -1;
+    }
+    return queue->front->data;
+}
+int isEmpty(Queue* queue) {
+    return queue->front == NULL;
+}
+void displayQueue(Queue* queue) {
+    if (queue->front == NULL) {
+        printf("Queue is empty\n");
+        return;
+    }
+    printf("Queue elements: ");
+    Node* current = queue->front;
+    while (current) {
+        printf("%d ", current->data);
+        current = current->next;
+    }
+    printf("\n");
+}
+int main() {
+    Queue queue = {NULL, NULL}; 
+    int choice, value;
+    while (1) {
+        printf("\nQueue Operations:\n");
+        printf("1. Enqueue\n");
+        printf("2. Dequeue\n");
+        printf("3. Peek Front\n");
+        printf("4. Display Queue\n");
+        printf("5. Check if Queue is Empty\n");
+        printf("6. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        switch (choice) {
+            case 1:
+                printf("Enter data to enqueue: ");
+                scanf("%d", &value);
+                enqueue(&queue, value);
+                break;
+            case 2:
+                value = dequeue(&queue);
+                if (value != -1)
+                    printf("Dequeued element: %d\n", value);
+                break;
+            case 3:
+                value = peekFront(&queue);
+                if (value != -1)
+                    printf("Front element: %d\n", value);
+                break;
+            case 4:
+                displayQueue(&queue);
+                break;
+            case 5:
+                if (isEmpty(&queue))
+                    printf("Queue is empty\n");
+                else
+                    printf("Queue is not empty\n");
+                break;
+            case 6:
+                exit(0);
+            default:
+                printf("Invalid choice\n");
+        }
+    }
+    return 0;
+}
+
+//Circular Queue using Array
+
+#include<stdio.h>
+#include<stdlib.h>
+#define MAX 5
+void printContent(int *queue, int front, int rear) {
+    if (front == rear) {
+        printf("Queue is empty\n");
+        return;
+    }
+    int i = front;
+    while (i != rear) {
+        printf("%d ", queue[i]);
+        i++;
+        if (i == MAX) i = 0; 
+    }
+    printf("\n");
+}
+int insert(int *rear, int front, int *queue) {
+    if ((*rear == MAX && front == 0) || (*rear + 1 == front)) 
+        return 0; 
+    int ele;
+    printf("Enter the element : ");
+    scanf("%d", &ele);
+    queue[*rear] = ele;
+    (*rear)++;
+    if (*rear == MAX) *rear = 0; 
+    return 1;
+}
+int delete(int *front, int rear, int *queue) {
+    if (*front == rear) 
+        return 0; 
+    (*front)++;
+    if (*front == MAX) *front = 0; 
+    return 1;
+}
+int peek(int front, int rear, int *queue) {
+    if (front == rear) {
+        printf("Underflow: can't peek\n");
+        return -1;
+    } 
+    return queue[front];
+}
+int isFull(int rear, int front) {
+    if ((rear == MAX && front == 0) || (rear + 1 == front))     return 1; 
+    return 0;
+}
+int isEmpty(int front, int rear) {
+    return front == rear; 
+}
+int main() {
+    int *queue, ch, topelement, front = 0, rear = 0;
+    queue = (int*)malloc(MAX * sizeof(int));
+    do {
+        printf("1->Insert\n2->Delete\n3->Peek\n4->Check Full\n5->Check Empty\n6->Exit\n");
+        printf("Enter your choice \n");
+        scanf("%d", &ch);
+        switch (ch) {
+            case 1:
+                if (insert(&rear, front, queue)) {
+                    printf("Element successfully inserted \n");
+                    printf("Queue content after inserting \n");
+                    printContent(queue, front, rear);
+                }else     printf("Overflow: can't insert \n");
+                break;
+            case 2:
+                if (delete(&front, rear, queue)) {
+                    printf("Element successfully deleted \n");
+                    printf("Queue content after deletion \n");
+                    printContent(queue, front, rear);
+                } else     printf("Underflow: can't delete \n");
+                break;
+            case 3:
+                topelement = peek(front, rear, queue);
+                if (topelement != -1) 
+                    printf("Top element is = %d \n", topelement);
+                break;
+            case 4:
+                if (isFull(rear, front))     printf("Queue is Full \n");
+                else     printf("Queue is not full \n");
+                break;
+            case 5:
+                if (isEmpty(front, rear))     printf("Queue is empty\n");
+                else     printf("Queue is not empty\n");
+                break;
+            case 6:     break;
+            default:    printf("Invalid choice \n");
+        }
+    } while (ch != 6);
+    free(queue);
+    return 0;
+}
+
+//Circular Queue using Linked List
+
+#include <stdio.h>
+#include <stdlib.h>
+typedef struct Node {
+    int data;
+    struct Node* next;
+} Node;
+typedef struct Queue {
+    Node* rear; 
+} Queue;
+Node* createNode(int data) {
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    newNode->data = data;
+    newNode->next = NULL;
+    return newNode;
+}
+void enqueue(Queue* queue, int data) {
+    Node* newNode = createNode(data);
+    if (queue->rear == NULL) { 
+        newNode->next = newNode; 
+        queue->rear = newNode;
+    } else {
+        newNode->next = queue->rear->next; 
+        queue->rear->next = newNode;       
+        queue->rear = newNode;             
+    }
+    printf("%d enqueued to queue\n", data);
+}
+int dequeue(Queue* queue) {
+    if (queue->rear == NULL) {
+        printf("Queue Underflow\n");
+        return -1;
+    }
+    Node* front = queue->rear->next; 
+    int dequeuedValue = front->data;
+    if (queue->rear == front) { 
+        queue->rear = NULL;
+    } else {
+        queue->rear->next = front->next;
+    }
+    free(front);
+    return dequeuedValue;
+}
+int peekFront(Queue* queue) {
+    if (queue->rear == NULL) {
+        printf("Queue is empty\n");
+        return -1;
+    }
+    return queue->rear->next->data; 
+}
+int isEmpty(Queue* queue) {
+    return queue->rear == NULL;
+}
+void displayQueue(Queue* queue) {
+    if (queue->rear == NULL) {
+        printf("Queue is empty\n");
+        return;
+    }
+    printf("Queue elements: ");
+    Node* current = queue->rear->next;
+    do {
+        printf("%d ", current->data);
+        current = current->next;
+    } while (current != queue->rear->next); 
+    printf("\n");
+}
+int main() {
+    Queue queue = {NULL}; 
+    int choice, value;
+    while (1) {
+        printf("\nCircular Queue Operations:\n");
+        printf("1. Enqueue\n");
+        printf("2. Dequeue\n");
+        printf("3. Peek Front\n");
+        printf("4. Display Queue\n");
+        printf("5. Check if Queue is Empty\n");
+        printf("6. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        switch (choice) {
+            case 1:
+                printf("Enter data to enqueue: ");
+                scanf("%d", &value);
+                enqueue(&queue, value);
+                break;
+            case 2:
+                value = dequeue(&queue);
+                if (value != -1)
+                    printf("Dequeued element: %d\n", value);
+                break;
+            case 3:
+                value = peekFront(&queue);
+                if (value != -1)
+                    printf("Front element: %d\n", value);
+                break;
+            case 4:
+                displayQueue(&queue);
+                break;
+            case 5:
+                if (isEmpty(&queue))
+                    printf("Queue is empty\n");
+                else
+                    printf("Queue is not empty\n");
+                break;
+            case 6:
+                exit(0);
+            default:
+                printf("Invalid choice\n");
+        }
+    }
+    return 0;
+}
+
+//Double Ended Queue using Array
+
+#include<stdio.h>
+#include<stdlib.h>
+#define MAX 3
+void printContent(int front,int rear,int *queue){
+    if(front==-1 && rear==-1)   return;
+    for(int i=front;i!=rear;i=(i+1)%MAX)
+        printf("%d ",queue[i]);
+    printf("%d\n",queue[rear]);
+}
+int insert_front(int *front,int *rear,int *queue){
+    if((*front==0 && *rear==MAX-1)||(*rear+1==*front))    return 0;
+    int ele;
+    printf("Enter the element to insert at the front: ");
+    scanf("%d",&ele);
+    if(*front==-1)  *front=*rear=0;
+    else if(*front==0)   *front=MAX-1;
+    else    *front=*front-1;
+    queue[*front]=ele;
+    return 1;
+}
+int insert_rear(int *front,int *rear,int *queue){
+    if((*front==0 && *rear==MAX-1)||(*rear+1==*front))    return 0;
+    int ele;
+    printf("Enter the element to insert at the rear: ");
+    scanf("%d",&ele);
+    if(*front==-1)  *front=*rear=0;
+    else if(*rear==MAX-1)   *rear=0;
+    else    *rear=*rear+1;
+    queue[*rear]=ele;
+    return 1;
+}
+int delete_front(int *front,int *rear){
+    if(*front==-1 && *rear==-1)  return 0;
+    if(*front==*rear){
+        *front=*rear=-1;
+        return 1;
+    } 
+    *front=(*front+1)%MAX;
+    return 1;
+}
+int delete_rear(int *front,int *rear){
+    if(*front==-1 && *rear==-1)  return 0;
+    if(*front==*rear){
+        *front=*rear=-1;
+        return 1;
+    } 
+    else if(*rear==0)   *rear=MAX-1;
+    else    *rear=*rear-1;
+    return 1;
+}
+int peek_front(int front,int rear,int *queue){
+    if (front==-1 && rear==-1){
+        printf("Underflow: can't peek, queue is empty\n");
+        return -1;
+    }
+    return queue[front];
+}
+int peek_rear(int front,int rear,int *queue){
+    if (front==-1 && rear==-1){
+        printf("Underflow: can't peek, queue is empty\n");
+        return -1;
+    }
+    return queue[rear];
+}
+int check_full(int front,int rear,int *queue){
+    if((front==0 && rear==MAX-1)||(rear+1==front))    return 1;
+    else    return 0;
+}
+int check_empty(int front,int rear,int *queue){
+    if(front==-1 && rear==-1)  return 1;
+    else    return 0;
+}
+int main(){
+    int *queue,ch,topelement,front=-1,rear=-1,topele,c;
+    queue=(int*)malloc(MAX*sizeof(int));
+    do{
+        printf("1->Push\n2->Pop\n3->Peek\n4->Check Full\n5->Check Empty\n6->Exit\n");
+        printf("Enter your choice \n");
+        scanf("%d",&ch);
+        switch(ch){
+            case 1:
+                printf("1->Insert from Front\n2->Insert from Rear\n");
+                printf("Enter your choice \n");
+                scanf("%d",&c);
+                switch(c){
+                    case 1:
+                        if(insert_front(&front,&rear,queue)){
+                            printf("Element Successfully pushed\n");
+                            printf("Queue elements after pushing\n");
+                            printContent(front,rear,queue);
+                        }
+                        else    printf("Overflow can't push\n");
+                    break;
+                    case 2:
+                        if(insert_rear(&front,&rear,queue)){
+                            printf("Element Successfully pushed\n");
+                            printf("Queue elements after pushing\n");
+                            printContent(front,rear,queue);
+                        }
+                        else    printf("Overflow can't push\n");
+                    break;
+                }
+            break;
+            case 2:
+                printf("1->Delete from Front\n2->Delete from Rear\n");
+                printf("Enter your choice \n");
+                scanf("%d",&c);
+                switch(c){
+                    case 1:
+                        if(delete_front(&front,&rear)){
+                            printf("Element Successfully poped\n");
+                            printf("Queue elements after poping\n");
+                            printContent(front,rear,queue);
+                        }
+                        else    printf("Underflow can't pop\n");
+                    break;
+                    case 2:
+                        if(delete_rear(&front,&rear)){
+                            printf("Element Successfully poped\n");
+                            printf("Queue elements after poping\n");
+                            printContent(front,rear,queue);
+                        }
+                        else    printf("Underflow can't pop\n");
+                    break;
+                }
+            break;
+            case 3:
+                printf("1->Peek from Front\n2->Peek from Rear\n");
+                printf("Enter your choice \n");
+                scanf("%d",&c);
+                switch(c){
+                    case 1:
+                        topele=peek_front(front,rear,queue);
+                        if(topele!=-1)  printf("Top element from front is = %d\n",topele);
+                    break;
+                    case 2:
+                        topele=peek_rear(front,rear,queue);
+                        if(topele!=-1)  printf("Top element from rear is = %d\n",topele);
+                    break;
+                }
+            break;
+            case 4:
+                if(check_full(front,rear,queue))    printf("DEQ is full\n");
+                else    printf("DEQ is not full\n");
+            break;
+            case 5:
+                if(check_empty(front,rear,queue))   printf("DEQ is empty\n");
+                else    printf("DEQ is not empty\n");
+            break;
+            case 6: exit(0);
+        }
+    }while(ch!=6);
+    free(queue);
+    return 0;
+}
+
+//Double Ended Queue using Linked List
+
+#include <stdio.h>
+#include <stdlib.h>
+typedef struct Node {
+    int data;
+    struct Node* next;
+    struct Node* prev;
+} Node;
+typedef struct Queue {
+    Node* front;
+    Node* rear;
+} Queue;
+Node* createNode(int data) {
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    newNode->data = data;
+    newNode->next = newNode->prev = NULL;
+    return newNode;
+}
+void initQueue(Queue* queue) {
+    queue->front = queue->rear = NULL;
+}
+void enqueueRear(Queue* queue, int data) {
+    Node* newNode = createNode(data);
+    if (queue->front == NULL) { 
+        queue->front = queue->rear = newNode;
+        newNode->next = newNode->prev = newNode; 
+    } else {
+        newNode->prev = queue->rear;
+        newNode->next = queue->front;
+        queue->rear->next = newNode;
+        queue->front->prev = newNode;
+        queue->rear = newNode;
+    }
+    printf("%d enqueued to queue\n", data);
+}
+void enqueueFront(Queue* queue, int data) {
+    Node* newNode = createNode(data);
+    if (queue->front == NULL) { 
+        queue->front = queue->rear = newNode;
+        newNode->next = newNode->prev = newNode; 
+    } else {
+        newNode->next = queue->front;
+        newNode->prev = queue->rear;
+        queue->rear->next = newNode;
+        queue->front->prev = newNode;
+        queue->front = newNode;
+    }
+    printf("%d enqueued at the front\n", data);
+}
+int dequeueFront(Queue* queue) {
+    if (queue->front == NULL) {
+        printf("Queue Underflow\n");
+        return -1;
+    }
+    Node* temp = queue->front;
+    int dequeuedValue = temp->data;
+    if (queue->front == queue->rear) { 
+        queue->front = queue->rear = NULL;
+    } else {
+        queue->front = queue->front->next;
+        queue->rear->next = queue->front;
+        queue->front->prev = queue->rear;
+    }
+    free(temp);
+    return dequeuedValue;
+}
+int dequeueRear(Queue* queue) {
+    if (queue->front == NULL) {
+        printf("Queue Underflow\n");
+        return -1;
+    }
+    Node* temp = queue->rear;
+    int dequeuedValue = temp->data;
+    if (queue->front == queue->rear) { 
+        queue->front = queue->rear = NULL;
+    } else {
+        queue->rear = queue->rear->prev;
+        queue->front->prev = queue->rear;
+        queue->rear->next = queue->front;
+    }
+    free(temp);
+    return dequeuedValue;
+}
+int peekFront(Queue* queue) {
+    if (queue->front == NULL) {
+        printf("Queue is empty\n");
+        return -1;
+    }
+    return queue->front->data;
+}
+int peekRear(Queue* queue) {
+    if (queue->rear == NULL) {
+        printf("Queue is empty\n");
+        return -1;
+    }
+    return queue->rear->data;
+}
+int isEmpty(Queue* queue) {
+    return queue->front == NULL;
+}
+void displayQueue(Queue* queue) {
+    if (queue->front == NULL) {
+        printf("Queue is empty\n");
+        return;
+    }
+    Node* current = queue->front;
+    printf("Queue elements: ");
+    do {
+        printf("%d ", current->data);
+        current = current->next;
+    } while (current != queue->front); 
+    printf("\n");
+}
+int main() {
+    Queue queue;
+    initQueue(&queue);
+    int ch, c, choice, value;
+    do {
+        printf("1->Enqueue\n2->Dequeue\n3->Peek\n4->Display\n5->Check Empty\n6->Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &ch);
+        switch (ch) {
+            case 1:
+                printf("1->Enqueue from front\n2->Enqueue from rear\n");
+                printf("Enter your choice: ");
+                scanf("%d", &choice);
+                switch(choice){
+                    case 1:
+                        printf("Enter data to insert from front: ");
+                        scanf("%d", &value);
+                        enqueueFront(&queue, value);
+                        break;
+                    case 2:
+                        printf("Enter data to insert from rear: ");
+                        scanf("%d", &value);
+                        enqueueRear(&queue, value);
+                        break;
+                    default:    printf("Invalid choice\n");
+                }
+                break;
+            case 2:
+                printf("1->Dequeue from front\n2->Dequeue from rear\n");
+                printf("Enter your choice: ");
+                scanf("%d", &choice);
+                switch(choice){
+                    case 1:
+                        value = dequeueFront(&queue);
+                        if (value != -1)
+                            printf("Dequeued element from front: %d\n", value);
+                        break;
+                    case 2:
+                        value = dequeueRear(&queue);
+                        if (value != -1)
+                            printf("Dequeued element from rear: %d\n", value);
+                        break;
+                    default:    printf("Invalid choice\n");
+                }
+                break;
+            case 3:
+                printf("1->Peek from front\n2->Peek from rear\n");
+                printf("Enter your choice: ");
+                scanf("%d", &choice);
+                switch(choice){
+                    case 1:
+                        value = peekFront(&queue);
+                        if (value != -1)
+                            printf("Front element: %d\n", value);
+                        break;
+                    case 2:
+                        value = peekRear(&queue);
+                        if (value != -1)
+                            printf("Rear element: %d\n", value);
+                        break;
+                    default:    printf("Invalid choice\n");
+                }
+                break;
+            case 4:
+                displayQueue(&queue);
+                break;
+            case 5:
+                if (isEmpty(&queue))
+                    printf("Queue is empty\n");
+                else
+                    printf("Queue is not empty\n");
+                break;
+            case 6:
+                freeQueue(&queue);
+                exit(0);
+            default:
+                printf("Invalid choice\n");
+        }
+    } while (ch != 6);
+    return 0;
+}
