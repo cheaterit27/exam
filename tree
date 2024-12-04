@@ -1,1 +1,706 @@
+//BST
 
+#include <stdio.h>
+#include <stdlib.h>
+struct Node {
+    int data;
+    struct Node *left, *right;
+};
+struct Node* createNode(int data) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    newNode->data = data;
+    newNode->left = newNode->right = NULL;
+    return newNode;
+}
+struct Node* insert(struct Node* node, int data) {
+    if (node == NULL) return createNode(data);
+    if (data < node->data)
+        node->left = insert(node->left, data);
+    else if (data > node->data)
+        node->right = insert(node->right, data);
+    return node;
+}
+void inorder(struct Node* root) {
+    if (root != NULL) {
+        inorder(root->left);
+        printf("%d ", root->data);
+        inorder(root->right);
+    }
+}
+void preorder(struct Node* root) {
+    if (root != NULL) {
+        printf("%d ", root->data);
+        preorder(root->left);
+        preorder(root->right);
+    }
+}
+void postorder(struct Node* root) {
+    if (root != NULL) {
+        postorder(root->left);
+        postorder(root->right);
+        printf("%d ", root->data);
+    }
+}
+struct Node* minValueNode(struct Node* node) {
+    struct Node* current = node;
+    while (current && current->left != NULL)
+        current = current->left;
+    return current;
+}
+struct Node* deleteNode(struct Node* root, int data) {
+    if (root == NULL) return root;
+    if (data < root->data)
+        root->left = deleteNode(root->left, data);
+    else if (data > root->data)
+        root->right = deleteNode(root->right, data);
+    else {
+        if (root->left == NULL) {
+            struct Node* temp = root->right;
+            free(root);
+            return temp;
+        }
+        else if (root->right == NULL) {
+            struct Node* temp = root->left;
+            free(root);
+            return temp;
+        }
+        struct Node* temp = minValueNode(root->right);
+        root->data = temp->data;
+        root->right = deleteNode(root->right, temp->data);
+    }
+    return root;
+}
+struct Node* search(struct Node* root, int data) {
+    if (root == NULL || root->data == data)
+        return root;
+    if (data < root->data)
+        return search(root->left, data);
+    return search(root->right, data);
+}
+int main() {
+    struct Node* root = NULL;
+    int choice, data;
+    while (1) {
+        printf("\nBST Operations:\n");
+        printf("1. Insert\n");
+        printf("2. Inorder Traversal\n");
+        printf("3. Preorder Traversal\n");
+        printf("4. Postorder Traversal\n");
+        printf("5. Delete\n");
+        printf("6. Search\n");
+        printf("7. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        switch (choice) {
+            case 1:
+                printf("Enter data to insert: ");
+                scanf("%d", &data);
+                root = insert(root, data);
+                break;
+            case 2:
+                printf("Inorder Traversal: ");
+                inorder(root);
+                printf("\n");
+                break;
+            case 3:
+                printf("Preorder Traversal: ");
+                preorder(root);
+                printf("\n");
+                break;
+            case 4:
+                printf("Postorder Traversal: ");
+                postorder(root);
+                printf("\n");
+                break;
+            case 5:
+                printf("Enter data to delete: ");
+                scanf("%d", &data);
+                root = deleteNode(root, data);
+                printf("Node deleted\n");
+                break;
+            case 6:
+                printf("Enter data to search: ");
+                scanf("%d", &data);
+                struct Node* foundNode = search(root, data);
+                if (foundNode != NULL)
+                    printf("Node found with data: %d\n", foundNode->data);
+                else
+                    printf("Node not found\n");
+                break;
+            case 7:
+                exit(0);
+            default:
+                printf("Invalid choice\n");
+        }
+    }
+    return 0;
+}
+
+//HEAP SORT maximum heap ascending order
+
+#include <stdio.h>
+#include<stdlib.h>
+void swap(int* a, int* b) {
+    int temp = *a;
+    *a = *b;
+    *b = temp;
+}
+void heapify(int arr[], int n, int i) {
+    int largest = i;      
+    int left = 2 * i + 1;  
+    int right = 2 * i + 2; 
+    if (left < n && arr[left] > arr[largest])
+        largest = left;
+    if (right < n && arr[right] > arr[largest])
+        largest = right;
+    if (largest != i) {
+        swap(&arr[i], &arr[largest]);
+        heapify(arr, n, largest);
+    }
+}
+void heapSort(int arr[], int n) {
+    for (int i = n / 2 - 1; i >= 0; i--)
+        heapify(arr, n, i);
+    for (int i = n - 1; i > 0; i--) {
+        swap(&arr[0], &arr[i]);
+        heapify(arr, i, 0);
+    }
+}
+void printArray(int arr[], int n) {
+    for (int i = 0; i < n; i++)
+        printf("%d ", arr[i]);
+    printf("\n");
+}
+int main() {
+    int n;
+    printf("Enter the number of elements: ");
+    scanf("%d", &n);
+    int *arr = (int*)malloc(n*sizeof(int));
+    printf("Enter %d elements:\n", n);
+    for (int i = 0; i < n; i++) 
+        scanf("%d", &arr[i]);
+    printf("Original array: \n");
+    printArray(arr, n);
+    heapSort(arr, n);
+    printf("Sorted array: \n");
+    printArray(arr, n);
+    return 0;
+}
+
+//HEAP SORT minimum heap ascending order
+
+#include <stdio.h>
+#include <stdlib.h>
+void swap(int* a, int* b) {
+    int temp = *a;
+    *a = *b;
+    *b = temp;
+}
+void heapify(int arr[], int n, int i) {
+    int smallest = i;       
+    int left = 2 * i + 1;   
+    int right = 2 * i + 2;  
+    if (left < n && arr[left] < arr[smallest])
+        smallest = left;
+    if (right < n && arr[right] < arr[smallest])
+        smallest = right;
+    if (smallest != i) {
+        swap(&arr[i], &arr[smallest]);
+        heapify(arr, n, smallest);
+    }
+}
+void heapSort(int arr[], int n) {
+    for (int i = n / 2 - 1; i >= 0; i--)
+        heapify(arr, n, i);
+    for (int i = n - 1; i > 0; i--) {
+        swap(&arr[0], &arr[i]);
+        heapify(arr, i, 0);
+    }
+}
+void printArray(int arr[], int n) {
+    for (int i = 0; i < n; i++)
+        printf("%d ", arr[i]);
+    printf("\n");
+}
+int main() {
+    int n;
+    printf("Enter the number of elements: ");
+    scanf("%d", &n);
+    int* arr = (int*)malloc(n * sizeof(int));
+    printf("Enter %d elements:\n", n);
+    for (int i = 0; i < n; i++) 
+        scanf("%d", &arr[i]);
+    printf("Original array: \n");
+    printArray(arr, n);
+    heapSort(arr, n);
+    for (int i = 0; i < n / 2; i++)
+        swap(&arr[i], &arr[n - i - 1]);
+    printf("Sorted array: \n");
+    printArray(arr, n);
+    free(arr);
+    return 0;
+}
+
+//HEAP SORT minimum heap descending order
+
+#include <stdio.h>
+#include <stdlib.h>
+void swap(int* a, int* b) {
+    int temp = *a;
+    *a = *b;
+    *b = temp;
+}
+void heapify(int arr[], int n, int i) {
+    int smallest = i;       
+    int left = 2 * i + 1;   
+    int right = 2 * i + 2;  
+    if (left < n && arr[left] < arr[smallest])
+        smallest = left;
+    if (right < n && arr[right] < arr[smallest])
+        smallest = right;
+    if (smallest != i) {
+        swap(&arr[i], &arr[smallest]);
+        heapify(arr, n, smallest);
+    }
+}
+void heapSortDescending(int arr[], int n) {
+    for (int i = n / 2 - 1; i >= 0; i--)
+        heapify(arr, n, i);
+    for (int i = n - 1; i > 0; i--) {
+        swap(&arr[0], &arr[i]);
+        heapify(arr, i, 0);
+    }
+}
+void printArray(int arr[], int n) {
+    for (int i = 0; i < n; i++)
+        printf("%d ", arr[i]);
+    printf("\n");
+}
+int main() {
+    int n;
+    printf("Enter the number of elements: ");
+    scanf("%d", &n);
+    int* arr = (int*)malloc(n * sizeof(int));
+    printf("Enter %d elements:\n", n);
+    for (int i = 0; i < n; i++) 
+        scanf("%d", &arr[i]);
+    printf("Original array: \n");
+    printArray(arr, n);
+    heapSortDescending(arr, n);
+    printf("Sorted array in descending order: \n");
+    printArray(arr, n);
+    free(arr);
+    return 0;
+}
+
+//HEAP SORT maximum heap descending order
+
+#include <stdio.h>
+#include <stdlib.h>
+void swap(int* a, int* b) {
+    int temp = *a;
+    *a = *b;
+    *b = temp;
+}
+void heapify(int arr[], int n, int i) {
+    int largest = i;       
+    int left = 2 * i + 1;  
+    int right = 2 * i + 2;
+    if (left < n && arr[left] > arr[largest])
+        largest = left;
+    if (right < n && arr[right] > arr[largest])
+        largest = right;
+    if (largest != i) {
+        swap(&arr[i], &arr[largest]);
+        heapify(arr, n, largest);
+    }
+}
+void heapSortDescending(int arr[], int n) {
+    for (int i = n / 2 - 1; i >= 0; i--)
+        heapify(arr, n, i);
+    for (int i = n - 1; i >= 0; i--) {
+        swap(&arr[0], &arr[i]);
+        heapify(arr, i, 0);
+    }
+}
+void printArray(int arr[], int n) {
+    for (int i = 0; i < n; i++)
+        printf("%d ", arr[i]);
+    printf("\n");
+}
+int main() {
+    int n;
+    printf("Enter the number of elements: ");
+    scanf("%d", &n);
+    int* arr = (int*)malloc(n * sizeof(int));
+    printf("Enter %d elements:\n", n);
+    for (int i = 0; i < n; i++)
+        scanf("%d", &arr[i]);
+    printf("Original array:\n");
+    printArray(arr, n);
+    heapSortDescending(arr, n);
+    printf("Sorted array in descending order:\n");
+    printArray(arr, n);
+    free(arr);
+    return 0;
+}
+
+//Construct Tree from Inorder preorder
+
+#include <stdio.h>
+#include <stdlib.h>
+typedef struct Node {
+    int data;
+    struct Node *left, *right;
+} Node;
+Node* createNode(int data) {
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    newNode->data = data;
+    newNode->left = newNode->right = NULL;
+    return newNode;
+}
+int search(int inorder[], int start, int end, int value) {
+    for (int i = start; i <= end; i++) {
+        if (inorder[i] == value)
+            return i;
+    }
+    return -1;
+}
+Node* constructTree(int inorder[], int preorder[], int inorderStart, int inorderEnd, int* preorderIndex) {
+    if (inorderStart > inorderEnd)
+        return NULL;
+    Node* root = createNode(preorder[*preorderIndex]);
+    (*preorderIndex)++;
+    if (inorderStart == inorderEnd)
+        return root;
+    int inorderIndex = search(inorder, inorderStart, inorderEnd, root->data);
+    root->left = constructTree(inorder, preorder, inorderStart, inorderIndex - 1, preorderIndex);
+    root->right = constructTree(inorder, preorder, inorderIndex + 1, inorderEnd, preorderIndex);
+    return root;
+}
+void inorderTraversal(Node* root) {
+    if (root != NULL) {
+        inorderTraversal(root->left);
+        printf("%d ", root->data);
+        inorderTraversal(root->right);
+    }
+}
+void preorderTraversal(Node* root) {
+    if (root != NULL) {
+        printf("%d ", root->data);
+        preorderTraversal(root->left);
+        preorderTraversal(root->right);
+    }
+}
+int main() {
+    int n;
+    printf("Enter the number of nodes: ");
+    scanf("%d", &n);
+    int inorder[n], preorder[n];
+    printf("Enter the inorder traversal: ");
+    for (int i = 0; i < n; i++) 
+        scanf("%d", &inorder[i]);
+    printf("Enter the preorder traversal: ");
+    for (int i = 0; i < n; i++) 
+        scanf("%d", &preorder[i]);
+    int preorderIndex = 0; 
+    Node* root = constructTree(inorder, preorder, 0, n - 1, &preorderIndex);
+    printf("\nConstructed Binary Tree:\n");
+    printf("Inorder Traversal: ");
+    inorderTraversal(root);
+    printf("\nPreorder Traversal: ");
+    preorderTraversal(root);
+    printf("\n");
+    return 0;
+}
+
+//Construct Tree from Inorder Postorder
+
+#include <stdio.h>
+#include <stdlib.h>
+typedef struct Node {
+    int data;
+    struct Node *left, *right;
+} Node;
+Node* createNode(int data) {
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    newNode->data = data;
+    newNode->left = newNode->right = NULL;
+    return newNode;
+}
+int findIndex(int* arr, int start, int end, int value) {
+    for (int i = start; i <= end; i++) {
+        if (arr[i] == value)
+            return i;
+    }
+    return -1;
+}
+Node* buildTree(int* inorder, int* postorder, int inorderStart, int inorderEnd, int* postIndex) {
+    if (inorderStart > inorderEnd)
+        return NULL;
+    int rootData = postorder[(*postIndex)--];
+    Node* root = createNode(rootData);
+    if (inorderStart == inorderEnd)
+        return root;
+    int inorderIndex = findIndex(inorder, inorderStart, inorderEnd, rootData);
+    root->right = buildTree(inorder, postorder, inorderIndex + 1, inorderEnd, postIndex);
+    root->left = buildTree(inorder, postorder, inorderStart, inorderIndex - 1, postIndex);
+    return root;
+}
+void inorderTraversal(Node* root) {
+    if (root != NULL) {
+        inorderTraversal(root->left);
+        printf("%d ", root->data);
+        inorderTraversal(root->right);
+    }
+}
+void postorderTraversal(Node* root) {
+    if (root != NULL) {
+        postorderTraversal(root->left);
+        postorderTraversal(root->right);
+        printf("%d ", root->data);
+    }
+}
+int main() {
+    int n;
+    printf("Enter the number of nodes: ");
+    scanf("%d", &n);
+    int* inorder = (int*)malloc(n * sizeof(int));
+    int* postorder = (int*)malloc(n * sizeof(int));
+    printf("Enter the inorder traversal: ");
+    for (int i = 0; i < n; i++)
+        scanf("%d", &inorder[i]);
+    printf("Enter the postorder traversal: ");
+    for (int i = 0; i < n; i++)
+        scanf("%d", &postorder[i]);
+    int postIndex = n - 1;
+    Node* root = buildTree(inorder, postorder, 0, n - 1, &postIndex);
+    printf("Inorder traversal of constructed tree: ");
+    inorderTraversal(root);
+    printf("\n");
+    printf("Postorder traversal of constructed tree: ");
+    postorderTraversal(root);
+    printf("\n");
+    free(inorder);
+    free(postorder);
+    return 0;
+}
+
+//Priority Queue Using Heap
+
+#include <stdio.h>
+#include <stdlib.h>
+#define MAX 5
+typedef struct PriorityQueue {
+    int heap[MAX];
+    int size;
+} PriorityQueue;
+void init(PriorityQueue* pq) {
+    pq->size = 0;
+}
+void swap(int* a, int* b) {
+    int temp = *a;
+    *a = *b;
+    *b = temp;
+}
+void heapifyUp(PriorityQueue* pq, int index) {
+    int parent = (index - 1) / 2;
+    if (index > 0 && pq->heap[index] > pq->heap[parent]) {
+        swap(&pq->heap[index], &pq->heap[parent]);
+        heapifyUp(pq, parent);
+    }
+}
+void heapifyDown(PriorityQueue* pq, int index) {
+    int largest = index;
+    int left = 2 * index + 1;
+    int right = 2 * index + 2;
+    if (left < pq->size && pq->heap[left] > pq->heap[largest])
+        largest = left;
+    if (right < pq->size && pq->heap[right] > pq->heap[largest])
+        largest = right;
+    if (largest != index) {
+        swap(&pq->heap[index], &pq->heap[largest]);
+        heapifyDown(pq, largest);
+    }
+}
+void insert(PriorityQueue* pq, int value) {
+    if (pq->size == MAX) {
+        printf("Priority Queue is full!\n");
+        return;
+    }
+    pq->heap[pq->size] = value;
+    pq->size++;
+    heapifyUp(pq, pq->size - 1);
+}
+int extractMax(PriorityQueue* pq) {
+    if (pq->size <= 0) {
+        printf("Priority Queue is empty!\n");
+        return -1;
+    }
+    int max = pq->heap[0];
+    pq->heap[0] = pq->heap[pq->size - 1];
+    pq->size--;
+    heapifyDown(pq, 0);
+    return max;
+}
+int getMax(PriorityQueue* pq) {
+    if (pq->size <= 0) {
+        printf("Priority Queue is empty!\n");
+        return -1;
+    }
+    return pq->heap[0];
+}
+void display(PriorityQueue* pq) {
+    if (pq->size <= 0) {
+        printf("Priority Queue is empty!\n");
+        return;
+    }
+    printf("Priority Queue: ");
+    for (int i = 0; i < pq->size; i++) 
+        printf("%d ", pq->heap[i]);
+    printf("\n");
+}
+int main() {
+    PriorityQueue pq;
+    init(&pq);
+    int choice, value;
+    while (1) {
+        printf("\nPriority Queue Operations:\n");
+        printf("1. Insert\n");
+        printf("2. Get Maximum\n");
+        printf("3. Extract Maximum\n");
+        printf("4. Display\n");
+        printf("5. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        switch (choice) {
+            case 1:
+                printf("Enter value to insert: ");
+                scanf("%d", &value);
+                insert(&pq, value);
+                break;
+            case 2:
+                printf("Maximum: %d\n", getMax(&pq));
+                break;
+            case 3:
+                printf("Extracted Maximum: %d\n", extractMax(&pq));
+                break;
+            case 4:
+                display(&pq);
+                break;
+            case 5:
+                exit(0);
+            default:
+                printf("Invalid choice!\n");
+        }
+    }
+    return 0;
+}
+
+//Priority Queue without heap
+
+#include <stdio.h>
+#include <stdlib.h>
+typedef struct {
+    int data;       
+    int priority;   
+} PQElement;
+typedef struct {
+    PQElement* elements;  
+    int size;             
+    int capacity;         
+} PriorityQueue;
+PriorityQueue* createPriorityQueue(int capacity) {
+    PriorityQueue* pq = (PriorityQueue*)malloc(sizeof(PriorityQueue));
+    pq->capacity = capacity;
+    pq->size = 0;
+    pq->elements = (PQElement*)malloc(capacity * sizeof(PQElement));
+    return pq;
+}
+int isFull(PriorityQueue* pq) {
+    return pq->size == pq->capacity;
+}
+int isEmpty(PriorityQueue* pq) {
+    return pq->size == 0;
+}
+void insert(PriorityQueue* pq, int data, int priority) {
+    if (isFull(pq)) {
+        printf("Priority queue is full!\n");
+        return;
+    }
+    PQElement newElement;
+    newElement.data = data;
+    newElement.priority = priority;
+    pq->elements[pq->size] = newElement;
+    pq->size++;
+    for (int i = pq->size - 1; i > 0; i--) {
+        if (pq->elements[i].priority > pq->elements[i - 1].priority) {
+            PQElement temp = pq->elements[i];
+            pq->elements[i] = pq->elements[i - 1];
+            pq->elements[i - 1] = temp;
+        } else 
+            break;  
+    }
+    printf("Element %d with priority %d inserted.\n", data, priority);
+}
+int delete(PriorityQueue* pq) {
+    if (isEmpty(pq)) {
+        printf("Priority queue is empty!\n");
+        return -1;  
+    }
+    int highestPriorityData = pq->elements[0].data;
+    for (int i = 1; i < pq->size; i++) 
+        pq->elements[i - 1] = pq->elements[i];
+    pq->size--;
+    return highestPriorityData;
+}
+void display(PriorityQueue* pq) {
+    if (isEmpty(pq)) {
+        printf("Priority queue is empty.\n");
+        return;
+    }
+    printf("Priority Queue: \n");
+    for (int i = 0; i < pq->size; i++) 
+        printf("Data: %d, Priority: %d\n", pq->elements[i].data, pq->elements[i].priority);
+}
+int main() {
+    int capacity;
+    printf("Enter the capacity of the priority queue: ");
+    scanf("%d", &capacity);
+    PriorityQueue* pq = createPriorityQueue(capacity);
+    int choice, data, priority;
+    while (1) {
+        printf("\nPriority Queue Operations:\n");
+        printf("1. Insert\n");
+        printf("2. Delete (highest priority)\n");
+        printf("3. Display\n");
+        printf("4. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        switch (choice) {
+            case 1:
+                printf("Enter the data to insert: ");
+                scanf("%d", &data);
+                printf("Enter the priority: ");
+                scanf("%d", &priority);
+                insert(pq, data, priority);
+                break;
+            case 2:
+                data = delete(pq);
+                if (data != -1) 
+                    printf("Element with the highest priority (%d) deleted.\n", data);
+                break;
+            case 3:
+                display(pq);
+                break;
+            case 4:
+                printf("Exiting...\n");
+                free(pq->elements);
+                free(pq);
+                exit(0);
+            default:
+                printf("Invalid choice.\n");
+        }
+    }
+    return 0;
+}
