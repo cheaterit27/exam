@@ -1,0 +1,102 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
+#define MAX_POINTS 100
+#define MAX_ITERATIONS 100
+
+typedef struct {
+    float x, y;
+    int cluster;
+} Point;
+
+typedef struct {
+    float x, y;
+} Centroid;
+
+float distance(Point p, Centroid c) {
+    return sqrt((p.x - c.x) * (p.x - c.x) + (p.y - c.y) * (p.y - c.y));
+}
+
+void assign_clusters(Point points[], Centroid centroids[], int n_points, int k) {
+    for (int i = 0; i < n_points; i++) {
+        float min_dist = distance(points[i], centroids[0]);
+        int cluster = 0;
+        for (int j = 1; j < k; j++) {
+            float dist = distance(points[i], centroids[j]);
+            if (dist < min_dist) {
+                min_dist = dist;
+                cluster = j;
+            }
+        }
+        points[i].cluster = cluster;
+    }
+}
+
+void update_centroids(Point points[], Centroid centroids[], int n_points, int k) {
+    int count[k];
+    float sum_x[k], sum_y[k];
+
+    for (int i = 0; i < k; i++) {
+        count[i] = 0;
+        sum_x[i] = 0;
+        sum_y[i] = 0;
+    }
+
+    for (int i = 0; i < n_points; i++) {
+        int c = points[i].cluster;
+        sum_x[c] += points[i].x;
+        sum_y[c] += points[i].y;
+        count[c]++;
+    }
+
+    for (int i = 0; i < k; i++) {
+        if (count[i] > 0) {
+            centroids[i].x = sum_x[i] / count[i];
+            centroids[i].y = sum_y[i] / count[i];
+        }
+    }
+}
+
+int main() {
+    int n_points, k;
+
+    printf("Enter number of points: ");
+    scanf("%d", &n_points);
+
+    Point points[MAX_POINTS];
+
+    printf("Enter %d 2D points (x y):\n", n_points);
+    for (int i = 0; i < n_points; i++) {
+        scanf("%f %f", &points[i].x, &points[i].y);
+        points[i].cluster = 0;
+    }
+
+    printf("Enter number of clusters (k): ");
+    scanf("%d", &k);
+
+    Centroid centroids[k];
+
+    // Initialize first k points as centroids
+    for (int i = 0; i < k; i++) {
+        centroids[i].x = points[i].x;
+        centroids[i].y = points[i].y;
+    }
+
+    for (int iter = 0; iter < MAX_ITERATIONS; iter++) {
+        assign_clusters(points, centroids, n_points, k);
+        update_centroids(points, centroids, n_points, k);
+    }
+
+    printf("\nFinal cluster assignments:\n");
+    for (int i = 0; i < n_points; i++) {
+        printf("Point (%.2f, %.2f) -> Cluster %d\n", points[i].x, points[i].y, points[i].cluster);
+    }
+
+    printf("\nFinal centroids:\n");
+    for (int i = 0; i < k; i++) {
+        printf("Centroid %d: (%.2f, %.2f)\n", i, centroids[i].x, centroids[i].y);
+    }
+
+    return 0;
+}
