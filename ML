@@ -1,98 +1,138 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-
-#define UNCLASSIFIED -1
-#define NOISE -2
+#include <float.h>
 
 typedef struct {
     float x, y;
-    int clusterId;
+    int cluster;
 } Point;
 
-float distance(Point a, Point b) {
-    return sqrtf((a.x - b.x)*(a.x - b.x) + (a.y - b.y)*(a.y - b.y));
+typedef struct {
+    float x, y;
+} Centroid;
+
+float calcDistance(Point p, Centroid c) {
+    return sqrtf((p.x - c.x) * (p.x - c.x) + (p.y - c.y) * (p.y - c.y));
 }
 
-int regionQuery(Point *points, int n, int index, float eps, int *neighbors) {
-    int count = 0;
+void assignCluster(Point *points, Centroid *centroids, int n, int k) {
     for (int i = 0; i < n; i++) {
-        if (distance(points[index], points[i]) <= eps) {
-            neighbors[count++] = i;
-        }
-    }
-    return count;
-}
-
-int expandCluster(Point *points, int n, int index, int clusterId, float eps, int minPts) {
-    int neighbors[n];
-    int neighborCount = regionQuery(points, n, index, eps, neighbors);
-
-    if (neighborCount < minPts) {
-        points[index].clusterId = NOISE;
-        return 0;
-    }
-
-    points[index].clusterId = clusterId;
-
-    for (int i = 0; i < neighborCount; i++) {
-        int neighborIndex = neighbors[i];
-
-        if (points[neighborIndex].clusterId == UNCLASSIFIED || points[neighborIndex].clusterId == NOISE) {
-            points[neighborIndex].clusterId = clusterId;
-
-            int subNeighbors[n];
-            int subCount = regionQuery(points, n, neighborIndex, eps, subNeighbors);
-            if (subCount >= minPts) {
-                for (int j = 0; j < subCount; j++) {
-                    neighbors[neighborCount++] = subNeighbors[j];
-                }
+        float minDist = calcDistance(points[i], centroids[0]);
+        int cluster = 0;
+        for (int j = 1; j < k; j++) {
+            float dist = calcDistance(points[i], centroids[j]);
+            if (dist < minDist) {
+                minDist = dist;
+                cluster = j;
             }
         }
+        points[i].cluster = cluster;
     }
-    return 1;
 }
 
-void dbscan(Point *points, int n, float eps, int minPts) {
-    int clusterId = 0;
-    for (int i = 0; i < n; i++) {
-        if (points[i].clusterId == UNCLASSIFIED) {
-            if (expandCluster(points, n, i, clusterId, eps, minPts)) {
-                clusterId++;
+void computeCentroids(Point *points, Centroid *centroids, int n, int k) {
+    for (int j = 0; j < k; j++) {
+        float sumX = 0, sumY = 0;
+        int count = 0;
+        for (int i = 0; i < n; i++) {
+            if (points[i].cluster == j) {
+                sumX += points[i].x;
+                sumY += points[i].y;
+                count++;
             }
         }
+        if (count > 0) {
+            centroids[j].x = sumX / count;
+            centroids[j].y = sumY / count;
+        }
     }
+}
+
+float calculateSSE(Point *points, Centroid *centroids, int n) {
+    float sse = 0.0f;
+    for (int i = 0; i < n; i++) {
+        float dist = calcDistance(points[i], centroids[points[i].cluster]);
+        sse += dist * dist;
+    }
+    return sse;
+}
+
+void printClusterAssignments(Point *points, int n, int iter) {
+    printf("\nIteration %d - Cluster Assignments:\n", iter + 1);
+    for (int i = 0; i < n; i++) {
+        printf("Point (%.2f, %.2f) -> Cluster %d\n", points[i].x, points[i].y, points[i].cluster);
+    }
+}
+
+void kMeans(Point *originalPoints, int n, int k, float *sse) {
+    Point points[n];
+    for (int i = 0; i < n; i++) {
+        points[i] = originalPoints[i];
+    }
+
+    Centroid centroids[k];
+    for (int i = 0; i < k; i++) {
+        centroids[i].x = points[i % n].x;
+        centroids[i].y = points[i % n].y;
+    }
+
+    assignCluster(points, centroids, n, k);
+
+    int maxIter = 100;
+    float threshold = 0.001;
+    for (int iter = 0; iter < maxIter; iter++) {
+        Centroid oldCentroids[k];
+        for (int i = 0; i < k; i++) {
+            oldCentroids[i] = centroids[i];
+        }
+
+        computeCentroids(points, centroids, n, k);
+        assignCluster(points, centroids, n, k);
+
+        printClusterAssignments(points, n, iter); // 🆕 print per iteration
+
+        int stop = 1;
+        for (int i = 0; i < k; i++) {
+            if (fabsf(centroids[i].x - oldCentroids[i].x) > threshold ||
+                fabsf(centroids[i].y - oldCentroids[i].y) > threshold) {
+                stop = 0;
+                break;
+            }
+        }
+
+        if (stop) break;
+    }
+
+    *sse = calculateSSE(points, centroids, n);
 }
 
 int main() {
     int n;
-    float eps;
-    int minPts;
-
-    printf("Enter number of points: ");
+    printf("Enter the number of points: ");
     scanf("%d", &n);
-
     Point points[n];
+    printf("Enter the 2D points:\n");
     for (int i = 0; i < n; i++) {
-        printf("Enter x y for point %d: ", i + 1);
+        printf("Enter coordinates for point %d: ", i + 1);
         scanf("%f %f", &points[i].x, &points[i].y);
-        points[i].clusterId = UNCLASSIFIED;
     }
 
-    printf("Enter epsilon (eps): ");
-    scanf("%f", &eps);
-    printf("Enter minPts: ");
-    scanf("%d", &minPts);
+    float minSSE = FLT_MAX;
+    int optimalK = 2;
 
-    dbscan(points, n, eps, minPts);
-
-    printf("\nResults:\n");
-    for (int i = 0; i < n; i++) {
-        if (points[i].clusterId == NOISE)
-            printf("Point (%.2f, %.2f) -> Noise\n", points[i].x, points[i].y);
-        else
-            printf("Point (%.2f, %.2f) -> Cluster %d\n", points[i].x, points[i].y, points[i].clusterId);
+    printf("\n--- Elbow Method Analysis ---\n");
+    for (int k = 2; k <= 10; k++) {
+        printf("\n--- Running K-Means with k = %d ---\n", k);
+        float sse;
+        kMeans(points, n, k, &sse);
+        printf("\nk = %d, SSE = %.6f\n", k, sse);
+        if (sse < minSSE) {
+            minSSE = sse;
+            optimalK = k;
+        }
     }
 
+    printf("\n✅ Optimal value of k = %d with Minimum SSE = %.6f\n", optimalK, minSSE);
     return 0;
 }
