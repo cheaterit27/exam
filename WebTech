@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+    <title>Lab 1</title>
+    <style>
+    #box {
+      width: 50%;
+      height: 75px;
+      margin: 1em auto;
+      padding: 1.5em;
+      font: 1.5em Verdana, Helvetica, sans-serif bold;
+      text-align: center;
+    }
+    .section {
+      text-align: center;
+    }
+    </style>
+  </head>
+
+  <body>
+   
+    <div class="section">
+      <form id="our_form">
+        <input type="text" name="foo">
+        <input type="text" name="bar">
+        <button type="submit">Click Me</button>
+        <button id="alert">Or Click Me!</button>
+      </form>
+      <div>
+        <span>Response: </span>
+        <span id="response"></span>
+      </div>
+    </div>
+    <hr>
+   
+    <div class="section">
+      <button id="button-1">Button 1</button>
+      <button id="button-2">Button 2</button>
+      <div id="box" style="background-color: red">
+        <span>I am a box!</span>
+      </div>
+    </div>
+    <hr>
+   
+    <div class="section">
+      <button class="tags-button" id="bold-btn">&lt;b&gt; tags</button>
+      <button class="tags-button" id="italic-btn">&lt;i&gt; tags</button>
+      <button class="tags-button" id="underline-btn">&lt;u&gt; tags</button>
+      <div id="tags">
+          <b>This is inside a bold tag</b>, <u>and</u> <i>this is not</i>,
+          but <b><i>this</i></b> is inside <i>two tags <u>at once</u></i>!
+      </div>
+    </div>
+    <hr>
+
+    <div class="section">
+      <canvas width="600" height="300" id="canvas"></canvas>
+      <br>
+      <button id="clearCanvas">Clear Canvas</button>
+    </div>
+   
+    <script src="./handlers.js" type="text/javascript"></script>
+    <script src="./attachBindings.js" type="text/javascript"></script>
+ 
+
+</body></html>
+
+
+function toggleStyle(el, styleName, value) {
+  if (el.style[styleName] === '') {
+    el.style[styleName] = value;
+  } else {
+    el.style[styleName] = '';
+  }
+}
+function onFormSubmit(e) {
+  e.preventDefault();
+
+  var first = document.getElementsByName("foo")[0].value;
+  var second = document.getElementsByName("bar")[0].value;
+
+  // Display the concatenated values in the response span
+  document.getElementById("response").textContent = first + " " + second;
+}
+function formAlert(e) {
+  e.preventDefault();  // prevent any default behavior
+
+  var first = document.getElementsByName("foo")[0].value;
+  var second = document.getElementsByName("bar")[0].value;
+
+  alert("foo: " + first + ", bar: " + second);
+}
+
+// Toggles the display of the box between visible and hidden
+function toggleBox(e) {
+  var box = document.getElementById("box");
+
+  if (box.style.display === 'none' || box.style.display === '') {
+    box.style.display = 'block';
+  } else {
+    box.style.display = 'none';
+  }
+}
+
+// Rotates the box's background color through red, blue, green with delays
+function rotateColors(e) {
+  var box = document.getElementById("box");
+  if(box.style.backgroundColor === "red") {
+  box.style.backgroundColor = "blue";
+  }
+  else if(box.style.backgroundColor === "blue") {
+  box.style.backgroundColor = "green";
+  }
+  else if(box.style.backgroundColor === "green") {
+  box.style.backgroundColor = "red";
+  }
+}
+function onTagButtonClick(e) {
+  var id = e.target.id;
+  var tagsEl = document.getElementById("tags");
+
+  switch(id) {
+    case "bold-btn":
+      Array.from(tagsEl.getElementsByTagName("b")).forEach(el => {
+        // Toggle text color red
+        if (el.style.color === 'red') {
+          el.style.color = '';
+        } else {
+          el.style.color = 'red';
+        }
+      });
+      break;
+/* */
+    case "italic-btn":
+      Array.from(tagsEl.getElementsByTagName("i")).forEach(el => {
+        // Toggle background color grey
+        if (el.style.backgroundColor === 'grey') {
+          el.style.backgroundColor = '';
+        } else {
+          el.style.backgroundColor = 'grey';
+        }
+      });
+      break;
+
+    case "underline-btn":
+      Array.from(tagsEl.getElementsByTagName("u")).forEach(el => {
+        // Toggle border
+        if (el.style.border) {
+          el.style.border = '';
+          el.style.padding = '';
+        } else {
+          el.style.border = '1px solid blue';
+          el.style.padding = '2px';
+        }
+      });
+      break;
+  }
+}
+function initCanvas() {
+  var c = document.getElementById("canvas");
+  var ctx = c.getContext("2d");
+
+  ctx.fillStyle = "#ddd";
+  ctx.fillRect(0, 0, c.width, c.height);
+}
+function randomColor() {
+  var r = (Math.floor(Math.random() * 256)).toString(16).padStart(2, '0');
+  var g = (Math.floor(Math.random() * 256)).toString(16).padStart(2, '0');
+  var b = (Math.floor(Math.random() * 256)).toString(16).padStart(2, '0');
+  return "#" + r + g + b;
+}
+
+// Draws a colored rectangle centered at the mouse click on the canvas
+function drawBox(e) {
+  var c = document.getElementById("canvas");
+  var ctx = c.getContext("2d");
+  var mouseX = e.offsetX;
+  var mouseY = e.offsetY;
+
+  var width = Math.floor(Math.random() * (200 - 50 + 1)) + 50;
+  var height = Math.floor(Math.random() * (100 - 50 + 1)) + 50;
+
+  ctx.fillStyle = randomColor();
+  ctx.fillRect(mouseX - width / 2, mouseY - height / 2, width, height);
+}
+
+
+document.getElementById('our_form').addEventListener("submit", onFormSubmit);
+
+document.getElementById("alert").addEventListener("click", formAlert);
+
+document.getElementById("button-1").addEventListener("click", toggleBox);
+
+document.getElementById("button-2").addEventListener("click", rotateColors);
+
+// For each button corresponding to styling tags, attach the appropriate
+// listener
+Array.prototype.map.call(document.getElementsByClassName("tags-button"), function(el) {
+  el.addEventListener("click", onTagButtonClick);
+});
+
+document.getElementById("canvas").addEventListener("click", drawBox);
+initCanvas();
+document.getElementById("clearCanvas").addEventListener("click", function(e) {
+  initCanvas();
+});
