@@ -1,0 +1,494 @@
+# 52
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <signal.h>
+
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s <delay>\n", argv[0]);
+        exit(1);
+    }
+
+    int delay = atoi(argv[1]);
+    pid_t pid = fork();
+
+    if (pid < 0) {
+        perror("fork failed");
+        exit(1);
+    }
+    else if (pid == 0) {
+        // Child simulates work
+        printf("Child (PID %d) started work...\n", getpid());
+        sleep(delay + 5); // intentionally sleep longer
+        printf("Child finished.\n");
+        exit(0);
+    }
+    else {
+        int status;
+        pid_t result;
+
+        // Wait for child with timeout
+        for (int i = 0; i < delay; i++) {
+            result = waitpid(pid, &status, WNOHANG);
+            if (result == pid) {
+                printf("Child (PID %d) exited with status %d\n",
+                       pid, WEXITSTATUS(status));
+                return 0;
+            }
+            sleep(1);
+        }
+
+        // Timeout expired, kill child
+        printf("Parent: timeout! Killing child (PID %d)\n", pid);
+        kill(pid, SIGKILL);
+        waitpid(pid, &status, 0);
+        printf("Child (PID %d) killed with signal %d\n",
+               pid, WTERMSIG(status));
+    }
+    return 0;
+}
+
+
+
+
+# 53
+
+# a
+#include <stdio.h>
+#include <signal.h>
+#include <unistd.h>
+
+void handler(int sig) {
+    printf("Received SIGINT (Ctrl+C). Signal number = %d\n", sig);
+}
+
+int main() {
+    signal(SIGINT, handler);
+    printf("Press Ctrl+C to send SIGINT...\n");
+    while (1) sleep(1);
+}
+
+
+# b
+#include <stdio.h>
+#include <signal.h>
+#include <unistd.h>
+
+void hup_handler(int sig) {
+    printf("Received SIGHUP (hangup). Signal = %d\n", sig);
+}
+
+int main() {
+    signal(SIGHUP, hup_handler);
+    printf("Run in background and close terminal to trigger SIGHUP.\n");
+    while (1) sleep(1);
+}
+
+
+# c
+
+#include <stdio.h>
+#include <signal.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+void child_handler(int sig) {
+    int status;
+    pid_t pid = wait(&status);
+    printf("Parent received SIGCHLD: Child %d terminated.\n", pid);
+}
+
+int main() {
+    signal(SIGCHLD, child_handler);
+
+    if (fork() == 0) {
+        printf("Child process exiting...\n");
+        sleep(2);
+        return 0;
+    }
+
+    while (1) sleep(1);
+}
+
+
+
+
+# 54
+
+
+#include <stdio.h>
+#include <unistd.h>
+#include <signal.h>
+#include <sys/wait.h>
+
+void handler(int sig) {
+    printf("Parent received SIGCHLD (signal %d)\n", sig);
+    wait(NULL);
+}
+
+int main() {
+    signal(SIGCHLD, handler);
+
+    if (fork() == 0) {
+        printf("Child exiting...\n");
+        _exit(0);
+    }
+
+    while (1) pause(); // wait for signals
+}
+
+
+
+# 55
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <signal.h>
+#include <sys/wait.h>
+
+int main() {
+    pid_t pid = fork();
+    int status;
+
+    if (pid == 0) {
+        printf("Child running (PID %d)...\n", getpid());
+        while (1) sleep(1);
+    }
+    else {
+        sleep(2);
+        printf("Parent killing child %d\n", pid);
+        kill(pid, SIGKILL);
+
+        waitpid(pid, &status, 0);
+        if (WIFSIGNALED(status))
+            printf("Child killed by signal %d\n", WTERMSIG(status));
+    }
+    return 0;
+}
+
+
+
+# 56
+
+
+#include <stdio.h>
+#include <signal.h>
+#include <unistd.h>
+
+void handler(int sig) {
+    printf("Caught interrupt signal (SIGINT), signal = %d\n", sig);
+    exit(0);
+}
+
+int main() {
+    signal(SIGINT, handler);
+    printf("Press Ctrl+C to generate SIGINT...\n");
+    while (1) sleep(1);
+}
+
+
+
+
+# 57
+
+#include <stdio.h>
+#include <unistd.h>
+#include <signal.h>
+#include <stdlib.h>
+
+void wake_handler(int sig) {
+    printf("Process %d: I am awake (signal %d)\n", getpid(), sig);
+}
+
+int main() {
+    pid_t pid = fork();
+
+    if (pid == 0) { // Child → Process B
+        signal(SIGUSR2, wake_handler);
+        printf("Process B (PID %d) sleeping...\n", getpid());
+        while (1) pause();
+    }
+    else { // Parent → Process A
+        signal(SIGUSR1, wake_handler);
+        printf("Process A (PID %d) sleeping...\n", getpid());
+
+        sleep(2);
+        printf("Parent sending SIGUSR1 to itself...\n");
+        kill(getpid(), SIGUSR1);
+
+        sleep(2);
+        printf("Parent sending SIGUSR2 to child...\n");
+        kill(pid, SIGUSR2);
+
+        while (1) pause();
+    }
+}
+
+
+
+# 58
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+
+#define BUFFER_SIZE 5
+
+int buffer[BUFFER_SIZE];
+int in = 0, out = 0;
+
+sem_t empty, full, mutex;
+
+void *producer(void *arg) {
+    for (int i = 1; i <= 10; i++) {
+        sem_wait(&empty);
+        sem_wait(&mutex);
+
+        buffer[in] = i;
+        printf("Producer produced: %d\n", i);
+        in = (in + 1) % BUFFER_SIZE;
+
+        sem_post(&mutex);
+        sem_post(&full);
+        sleep(1);
+    }
+    return NULL;
+}
+
+void *consumer(void *arg) {
+    for (int i = 1; i <= 10; i++) {
+        sem_wait(&full);
+        sem_wait(&mutex);
+
+        int item = buffer[out];
+        printf("Consumer consumed: %d\n", item);
+        out = (out + 1) % BUFFER_SIZE;
+
+        sem_post(&mutex);
+        sem_post(&empty);
+        sleep(2);
+    }
+    return NULL;
+}
+
+int main() {
+    pthread_t prod, cons;
+
+    sem_init(&empty, 0, BUFFER_SIZE);
+    sem_init(&full, 0, 0);
+    sem_init(&mutex, 0, 1);
+
+    pthread_create(&prod, NULL, producer, NULL);
+    pthread_create(&cons, NULL, consumer, NULL);
+
+    pthread_join(prod, NULL);
+    pthread_join(cons, NULL);
+
+    sem_destroy(&empty);
+    sem_destroy(&full);
+    sem_destroy(&mutex);
+
+    return 0;
+}
+
+
+
+# 59
+
+
+#include <stdio.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+
+sem_t mutex;
+
+void *print_numbers(void *arg) {
+    while (1) {
+        sem_wait(&mutex);
+        for (int i = 1; i <= 5; i++) {
+            printf("%d ", i);
+            fflush(stdout);
+        }
+        printf("\n");
+        sem_post(&mutex);
+        sleep(1);
+    }
+    return NULL;
+}
+
+void *print_letters(void *arg) {
+    while (1) {
+        sem_wait(&mutex);
+        for (char c = 'A'; c <= 'E'; c++) {
+            printf("%c ", c);
+            fflush(stdout);
+        }
+        printf("\n");
+        sem_post(&mutex);
+        sleep(1);
+    }
+    return NULL;
+}
+
+int main() {
+    pthread_t t1, t2;
+
+    sem_init(&mutex, 0, 1);
+
+    pthread_create(&t1, NULL, print_numbers, NULL);
+    pthread_create(&t2, NULL, print_letters, NULL);
+
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
+
+    sem_destroy(&mutex);
+
+    return 0;
+}
+
+
+
+# 60
+
+#include <stdio.h>
+#include <pthread.h>
+#include <unistd.h>
+
+void *thread_func(void *arg) {
+    printf("Hello from thread! ID: %lu\n", pthread_self());
+    sleep(1);
+    return NULL;
+}
+
+int main() {
+    pthread_t t1, t2;
+
+    pthread_create(&t1, NULL, thread_func, NULL);
+    pthread_create(&t2, NULL, thread_func, NULL);
+
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
+
+    printf("Main thread finished.\n");
+    return 0;
+}
+
+
+
+# 61
+
+
+#include <stdio.h>
+#include <pthread.h>
+#include <stdlib.h>
+
+typedef struct {
+    int start;
+    int end;
+} Range;
+
+void *sum_func(void *arg) {
+    Range *r = (Range *)arg;
+    int sum = 0;
+    for (int i = r->start; i <= r->end; i++) sum += i;
+    int *res = malloc(sizeof(int));
+    *res = sum;
+    pthread_exit(res);
+}
+
+int is_prime(int n) {
+    if (n < 2) return 0;
+    for (int i = 2; i * i <= n; i++)
+        if (n % i == 0) return 0;
+    return 1;
+}
+
+void *prime_func(void *arg) {
+    Range *r = (Range *)arg;
+    printf("Primes in range: ");
+    for (int i = r->start; i <= r->end; i++)
+        if (is_prime(i)) printf("%d ", i);
+    printf("\n");
+    int *res = malloc(sizeof(int));
+    *res = 1; // success
+    pthread_exit(res);
+}
+
+int main() {
+    int start, end;
+    printf("Enter range (start end): ");
+    scanf("%d %d", &start, &end);
+
+    Range r = {start, end};
+    pthread_t t1, t2;
+
+    pthread_create(&t1, NULL, sum_func, &r);
+    pthread_create(&t2, NULL, prime_func, &r);
+
+    int *sum_res, *prime_res;
+    pthread_join(t1, (void **)&sum_res);
+    pthread_join(t2, (void **)&prime_res);
+
+    printf("Sum of range = %d\n", *sum_res);
+    printf("Prime thread returned = %d\n", *prime_res);
+
+    free(sum_res);
+    free(prime_res);
+
+    return 0;
+}
+
+
+
+# 62
+
+
+#include <stdio.h>
+#include <pthread.h>
+#include <stdlib.h>
+
+typedef struct {
+    int n;
+} Arg;
+
+void *print_even(void *arg) {
+    int n = ((Arg *)arg)->n;
+    for (int i = 0; i <= n; i += 2) {
+        printf("Even: %d\n", i);
+    }
+    return NULL;
+}
+
+void *print_odd(void *arg) {
+    int n = ((Arg *)arg)->n;
+    for (int i = 1; i <= n; i += 2) {
+        printf("Odd: %d\n", i);
+    }
+    return NULL;
+}
+
+int main() {
+    int n;
+    printf("Enter end of range: ");
+    scanf("%d", &n);
+
+    Arg arg = {n};
+    pthread_t t1, t2;
+
+    pthread_create(&t1, NULL, print_even, &arg);
+    pthread_create(&t2, NULL, print_odd, &arg);
+
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
+
+    return 0;
+}
